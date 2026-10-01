@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block page_content %}
+
+<h1>Chatbot</h1>
+
+<div id="chat"></div>
+
+<input id="message" type="text">
+<button onclick="sendMessage()">Send</button>
+
+<a href="{{ url_for('logout') }}">Logout</a>
+
+<script>
+function sendMessage() {
+    let message = document.getElementById("message").value;
+
+    fetch("/chat", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            message: message
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById("chat").innerHTML +=
+            "<p>You: " + message + "</p>" +
+            "<p>Bot: " + data.reply + "</p>";
+
+        document.getElementById("message").value = "";
+    });
+}
+</script>
+
+{% endblock %}

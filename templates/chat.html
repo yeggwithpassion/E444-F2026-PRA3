@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Flasky - Chat{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+    <h1>Hi, {{ name }}! Chat with the bot</h1>
+    <a class="btn btn-default" href="{{ url_for('logout') }}">Logout</a>
+</div>
+
+<div id="chat-log" style="border:1px solid #ddd; border-radius:4px; padding:10px; min-height:200px; margin-bottom:10px;"></div>
+
+<div class="form-inline">
+    <input type="text" id="message" class="form-control" placeholder="Type a message..." style="width:70%;">
+    <button id="send" class="btn btn-primary">Send</button>
+</div>
+
+<script>
+function appendLine(text) {
+    var log = document.getElementById('chat-log');
+    var p = document.createElement('p');
+    p.textContent = text;
+    log.appendChild(p);
+    log.scrollTop = log.scrollHeight;
+}
+
+document.getElementById('send').addEventListener('click', function () {
+    var input = document.getElementById('message');
+    var message = input.value.trim();
+    if (!message) return;
+    appendLine('You: ' + message);
+    input.value = '';
+
+    fetch('/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: message })
+    })
+    .then(function (response) { return response.json(); })
+    .then(function (data) { appendLine('Bot: ' + data.reply); });
+});
+
+document.getElementById('message').addEventListener('keydown', function (event) {
+    if (event.key === 'Enter') {
+        document.getElementById('send').click();
+    }
+});
+</script>
+{% endblock %}

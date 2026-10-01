@@ -1,4 +1,5 @@
-from flask import Flask, render_template, session, redirect, url_for, flash
+import re
+from flask import Flask, render_template, session, redirect, url_for, flash, request, jsonify
 from flask_bootstrap import Bootstrap
 from flask_moment import Moment
 from datetime import datetime
@@ -32,8 +33,45 @@ def index():
         session['name'] = form.name.data
         if 'utoronto' in form.email.data:
             session['email'] = form.email.data
+            return redirect(url_for('chat'))
         else:
             session['email'] = None
         return redirect(url_for('index'))
     return render_template('index.html',
         form = form, name = session.get('name'), email = session.get('email'))
+
+@app.route('/chat', methods=['GET'])
+def chat_page():
+    return render_template('chat.html')
+
+
+@app.route('/chat', methods=['POST'])
+def chat():
+    message = request.json['message']
+
+    if message.lower().startswith('my name is '):
+        name = message[11:].strip()
+        session['chat_name'] = name
+        reply = f'Nice to meet you, {name}!'
+
+    elif 'what is my name' in message.lower():
+        name = session.get('chat_name')
+
+        if name:
+            reply = f'Your name is {name}.'
+        else:
+            reply = "I don't know your name."
+
+    elif 'hello' in message.lower():
+        reply = 'Hello!'
+
+    else:
+        reply = "I don't understand."
+
+    return {'reply': reply}
+
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('index'))
